@@ -76,5 +76,25 @@ mod tests {
     }
 
     #[test]
-    fn test_with_bytes() {}
+    fn test_with_bytes() {
+        let key = "c4ca4238a0b923820dcc509a6f75849b";
+        let cryptor = Aes256Cryptor::try_from(key).unwrap();
+        let buf: [u8; 4] = [1, 0, 0, 1];
+        let encrypt_buf = cryptor.encrypt(buf);
+
+        let clear_buf = cryptor.decrypt(encrypt_buf);
+        let clear_buf = clear_buf.as_ref().map(|v| &v[..]).map_err(|_| ());
+        assert_eq!(Ok(&buf[..]), clear_buf);
+
+        let buf: [u8; 16] = [1, 0, 0, 1, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 13];
+        let encrypt_buf = cryptor.encrypt(buf);
+
+        let clear_buf = cryptor.decrypt(encrypt_buf);
+        let clear_buf = clear_buf.as_ref().map(|v| &v[..]).map_err(|_| ());
+        assert_eq!(Ok(&buf[..]), clear_buf);
+
+        let buf = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 200]; // invalid data for decrypting
+        let clear_buf = cryptor.decrypt(buf);
+        assert!(clear_buf.is_err());
+    }
 }
